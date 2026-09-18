@@ -1,0 +1,34 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+
+# Files from Forge MDK
+forge*changelog.txt
+
+# scratch / stray files at project root (real resources live in src/main/resources)
+/com/
+/vazkii/
+/temp_ftbq/
+/assets/
+/mcmod.info
+/pack.mcmeta
+/mixins.teamytzviewpoint.json

@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8.0",
+  "package": "com.ytzzhu.teamytzviewpoint.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "priority": 500,
+  "refmap": "mixins.teamytzviewpoint.refmap.json",
+  "mixins": [
+    "MixinAbstractClientPlayer"
+  ],
+  "client": [
+    "MixinAbstractClientPlayer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,24 @@
+=========================
+Ambience联动配置说明
+=========================
+
+使用方法：
+1. 打开游戏目录下的 config/ambience_music/ambience.properties 文件
+2. 在文件末尾添加以下配置：
+
+event.viewpoint=your_music_file.mp3
+
+示例：
+event.viewpoint=viewpoint_theme.mp3,epic_music.mp3
+
+配置说明：
+- 多个音乐文件用英文逗号分隔
+- 音乐文件需要放在 config/ambience_music/ 目录下
+- 支持的格式：MP3
+
+触发条件：
+当玩家触发鸟瞰动画时（空手右键鸟瞰点方块），Ambience会自动播放event.viewpoint配置的音乐。
+
+注意：
+- 需要同时安装Ambience模组
+- 音乐文件不会随模组自动打包，需要手动添加

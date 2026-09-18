@@ -1,0 +1,12 @@
+tile.viewpoint_block.name=鸟瞰点方块
+item.viewpoint_wrench.name=鸟瞰扳手
+
+viewpoint.gui.title=鸟瞰点设置
+viewpoint.gui.name=名称:
+
+viewpoint.task.name=鸟瞰点解锁
+viewpoint.task.description=解锁指定的鸟瞰点
+viewpoint.task.viewpoint_name=鸟瞰点名称
+viewpoint.task.teamytzviewpoint.viewpoint=解锁鸟瞰点
+
+viewpoint.message.unlocked=§6[鸟瞰点] §f%s 已解锁！
