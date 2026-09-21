@@ -1,0 +1,14 @@
+{
+  "mappings": {
+    "com/ytzzhu/teamytzviewpoint/mixin/MixinAbstractClientPlayer": {
+      "isSpectator()Z": "Lnet/minecraft/client/entity/AbstractClientPlayer;func_175149_v()Z"
+    }
+  },
+  "data": {
+    "searge": {
+      "com/ytzzhu/teamytzviewpoint/mixin/MixinAbstractClientPlayer": {
+        "isSpectator()Z": "Lnet/minecraft/client/entity/AbstractClientPlayer;func_175149_v()Z"
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "normal": { "model": "teamytzviewpoint:viewpoint_block" },
+    "inventory": { "model": "teamytzviewpoint:viewpoint_block" }
+  }
+}

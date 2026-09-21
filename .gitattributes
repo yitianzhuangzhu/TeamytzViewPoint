@@ -1,0 +1,24 @@
+# 行尾统一：仓库内存 LF，检出按平台转换
+* text=auto
+
+# 二进制，禁止任何转换
+*.jar binary
+*.png binary
+*.zip binary
+*.ttf binary
+*.ogg binary
+
+# 脚本行尾钉死
+gradlew    text eol=lf
+gradlew.bat text eol=crlf
+*.sh       text eol=lf
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+
+# Java / 资源按平台默认
+*.java  text
+*.json  text
+*.lang  text
+*.cfg   text
+*.toml  text
+*.properties text

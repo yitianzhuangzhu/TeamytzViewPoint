@@ -1,0 +1,44 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# vscode
+.vscode/
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+
+# Files from Forge MDK
+forge*changelog.txt
+
+# scratch / stray files at project root (real resources live in src/main/resources)
+/com/
+/vazkii/
+/temp_ftbq/
+/assets/
+/mcmod.info
+/pack.mcmeta
+/mixins.teamytzviewpoint.json
+
+# --- 便携 JDK 8 与本机构建工具（见 .tools/README.md）---
+# JDK 本体约 190MB、可重新下载，不入库；说明与脚本保留
+.tools/*
+!.tools/README.md
+!.tools/*.js
+!.tools/*.ps1

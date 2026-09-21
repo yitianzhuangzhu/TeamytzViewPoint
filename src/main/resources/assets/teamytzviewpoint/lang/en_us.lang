@@ -1,0 +1,12 @@
+tile.viewpoint_block.name=Viewpoint
+item.viewpoint_wrench.name=Viewpoint Wrench
+
+viewpoint.gui.title=Viewpoint Settings
+viewpoint.gui.name=Name:
+
+viewpoint.task.name=Viewpoint Unlocked
+viewpoint.task.description=Unlock the specified viewpoint
+viewpoint.task.viewpoint_name=Viewpoint Name
+viewpoint.task.teamytzviewpoint.viewpoint=Unlock Viewpoint
+
+viewpoint.message.unlocked=§6[Viewpoint] §f%s unlocked!
