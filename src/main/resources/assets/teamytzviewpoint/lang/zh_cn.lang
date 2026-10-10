@@ -1,8 +1,45 @@
 tile.viewpoint_block.name=鸟瞰点方块
 item.viewpoint_wrench.name=鸟瞰扳手
+itemGroup.teamytzviewpoint=鸟瞰点
+
+key.categories.teamytzviewpoint=鸟瞰点
+key.teamytzviewpoint.trigger=触发鸟瞰点
 
 viewpoint.gui.title=鸟瞰点设置
 viewpoint.gui.name=名称:
+viewpoint.gui.material=外观材质:
+viewpoint.gui.material.default=默认
+viewpoint.gui.material.default_hint=留空 = 默认（石砖）
+viewpoint.gui.material.valid=合法: %s
+viewpoint.gui.material.invalid=方块注册名不存在
+viewpoint.gui.material.invalid.render=该方块不支持作为外观
+viewpoint.gui.material.invalid.self=不能使用鸟瞰点方块自身
+viewpoint.gui.material.preview.none=无物品图标
+viewpoint.gui.material.hint=例如 minecraft:stonebrick
+viewpoint.gui.waypoint_color=路径点颜色:
+
+viewpoint.color.gold=金
+viewpoint.color.black=黑
+viewpoint.color.dark_blue=深蓝
+viewpoint.color.dark_green=深绿
+viewpoint.color.dark_aqua=深青
+viewpoint.color.dark_red=深红
+viewpoint.color.dark_purple=深紫
+viewpoint.color.gray=灰
+viewpoint.color.dark_gray=深灰
+viewpoint.color.blue=蓝
+viewpoint.color.green=绿
+viewpoint.color.aqua=青
+viewpoint.color.red=红
+viewpoint.color.purple=紫
+viewpoint.color.yellow=黄
+viewpoint.color.white=白
+viewpoint.color.light_blue=淡蓝
+viewpoint.color.pink=粉
+viewpoint.color.brown=棕
+
+viewpoint.hud.trigger=按%s进行同步
+viewpoint.hud.trigger.unbound=请在“控制”里为“触发鸟瞰点”设置按键
 
 viewpoint.task.name=鸟瞰点解锁
 viewpoint.task.description=解锁指定的鸟瞰点

@@ -13,7 +13,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.0.15'
+version = '3.1.0'
 group = 'com.ytzzhu.mod' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'TeamytzViewpoint'
 
@@ -62,6 +62,30 @@ dependencies {
     
     compile fileTree(dir: 'libs', include: ['*.jar'])
     runtime fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+// 把 mcmod.info 里的 ${version} / ${mcversion} 在打包时替换成真实值。
+// 不做这一步的话，jar 里的 mcmod.info 会保留字面量 "${version}" —— 游戏内显示不受影响
+// （FML 用的是 @Mod 注解上的版本），但任何读 mcmod.info 的工具/启动器看到的会是占位符。
+// 这是 Forge MDK 的标准写法；升版本时只需改顶部的 version，这里不用跟着动。
+processResources {
+    // 注意：这里用的是字面量而不是 project.minecraft.version ——
+    // ForgeGradle 3 的 minecraft 扩展（UserDevExtension）没有 version 属性，
+    // 写 project.minecraft.version 会在配置阶段直接报 "unknown property 'version'"。
+    // 本项目固定在 1.12.2，改 MC 版本时记得同步这一处。
+    def mcVersion = '1.12.2'
+
+    inputs.property "version", project.version
+    inputs.property "mcversion", mcVersion
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.version, 'mcversion': mcVersion
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

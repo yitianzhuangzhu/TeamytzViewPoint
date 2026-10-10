@@ -5,10 +5,10 @@
   "description": "Adds Eagle Vision viewpoints inspired by Assassin's Creed. Players can interact with special viewpoint blocks to trigger a cinematic camera sequence.",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://www.curseforge.com/minecraft/mc-mods/teamytzs-viewpoint",
   "updateUrl": "",
   "authorList": ["ytzzhu"],
-  "credits": "The Forge and FML guys, for making this possible",
+  "credits": "Everyone who made Minecraft better",
   "logoFile": "assets/teamytzviewpoint/modlogo.png",
   "screenshots": [],
   "dependencies": ["required-after:freecam@[2.0.0,)"]

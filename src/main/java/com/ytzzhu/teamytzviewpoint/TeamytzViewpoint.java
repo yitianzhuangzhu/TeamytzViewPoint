@@ -2,16 +2,21 @@ package com.ytzzhu.teamytzviewpoint;
 
 import com.ytzzhu.teamytzviewpoint.blocks.ViewpointTileEntity;
 import com.ytzzhu.teamytzviewpoint.client.ViewpointClientEvents;
+import com.ytzzhu.teamytzviewpoint.client.ViewpointHudRenderer;
+import com.ytzzhu.teamytzviewpoint.client.ViewpointKeyBindings;
 import com.ytzzhu.teamytzviewpoint.client.ViewpointRenderHandler;
+import com.ytzzhu.teamytzviewpoint.client.render.ViewpointBlockRenderer;
 import com.ytzzhu.teamytzviewpoint.gui.ViewpointContainer;
 import com.ytzzhu.teamytzviewpoint.gui.ViewpointGui;
 import com.ytzzhu.teamytzviewpoint.network.ViewpointNameSyncPacket;
+import com.ytzzhu.teamytzviewpoint.network.ViewpointTriggerPacket;
 import com.ytzzhu.teamytzviewpoint.network.ViewpointUpdatePacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -23,12 +28,13 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = TeamytzViewpoint.MODID, name = TeamytzViewpoint.NAME, version = TeamytzViewpoint.VERSION)
+@Mod(modid = TeamytzViewpoint.MODID, name = TeamytzViewpoint.NAME, version = TeamytzViewpoint.VERSION,
+     dependencies = "after:xaerominimap;required-after:freecam@[2.0.0,)")
 public class TeamytzViewpoint implements IGuiHandler
 {
     public static final String MODID = "teamytzviewpoint";
     public static final String NAME = "Teamytz Viewpoint";
-    public static final String VERSION = "1.0.15";
+    public static final String VERSION = "3.1.0";
     
     @Mod.Instance(MODID)
     public static TeamytzViewpoint instance;
@@ -47,6 +53,7 @@ public class TeamytzViewpoint implements IGuiHandler
         network = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
         network.registerMessage(ViewpointUpdatePacket.Handler.class, ViewpointUpdatePacket.class, 0, Side.SERVER);
         network.registerMessage(ViewpointNameSyncPacket.Handler.class, ViewpointNameSyncPacket.class, 1, Side.CLIENT);
+        network.registerMessage(ViewpointTriggerPacket.Handler.class, ViewpointTriggerPacket.class, 2, Side.SERVER);
         registerFTBQuestsTaskIntegration();
     }
     
@@ -56,6 +63,15 @@ public class TeamytzViewpoint implements IGuiHandler
         if (event.getSide() == Side.CLIENT) {
             MinecraftForge.EVENT_BUS.register(new ViewpointClientEvents());
             MinecraftForge.EVENT_BUS.register(new ViewpointRenderHandler());
+            MinecraftForge.EVENT_BUS.register(new ViewpointHudRenderer());
+            // 注册"触发鸟瞰点"键位（默认 V，玩家可在"控制"里改）
+            ViewpointKeyBindings.register();
+            try {
+                ClientRegistry.bindTileEntitySpecialRenderer(ViewpointTileEntity.class, new ViewpointBlockRenderer());
+                logger.info("Viewpoint TESR registered.");
+            } catch (Throwable t) {
+                logger.error("Failed to register Viewpoint TESR; viewpoint blocks will render invisible!", t);
+            }
             registerAmbienceIntegration();
         }
         net.minecraftforge.fml.common.network.NetworkRegistry.INSTANCE.registerGuiHandler(this, this);

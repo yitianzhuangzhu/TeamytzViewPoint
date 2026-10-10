@@ -73,6 +73,12 @@ public class ViewpointCameraManager {
     
     public static void update() {
         if (!FreeCam.instance.isActive()) {
+            // freecam 被外部关掉了（玩家自己按了切换键、退出世界、切维度等）：动画实际上已经结束。
+            // 必须把状态收回 INACTIVE，否则 isActive() 会一直为 true —— 那会让鸟瞰期间隐藏的 HUD
+            // 永远不恢复，也会让 ViewpointRenderHandler 一直强制重画玩家。
+            if (currentState != ViewpointState.INACTIVE) {
+                reset();
+            }
             return;
         }
         

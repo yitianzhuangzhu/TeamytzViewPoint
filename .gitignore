@@ -24,6 +24,9 @@ build
 eclipse
 run
 
+# 运行期日志：任何以项目根为工作目录启动的 JVM（runClient / 探针）都会生成，不入库
+logs/
+
 # Files from Forge MDK
 forge*changelog.txt
 

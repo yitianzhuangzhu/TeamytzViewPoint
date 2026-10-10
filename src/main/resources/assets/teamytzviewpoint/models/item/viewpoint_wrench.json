@@ -1,6 +1,6 @@
 {
     "parent": "item/handheld",
     "textures": {
-        "layer0": "minecraft:items/iron_ingot"
+        "layer0": "teamytzviewpoint:items/viewpoint_wrench"
     }
 }

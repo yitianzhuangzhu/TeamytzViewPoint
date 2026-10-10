@@ -1,8 +1,45 @@
 tile.viewpoint_block.name=Viewpoint
 item.viewpoint_wrench.name=Viewpoint Wrench
+itemGroup.teamytzviewpoint=Viewpoint
+
+key.categories.teamytzviewpoint=Teamytz Viewpoint
+key.teamytzviewpoint.trigger=Trigger Viewpoint
 
 viewpoint.gui.title=Viewpoint Settings
 viewpoint.gui.name=Name:
+viewpoint.gui.material=Material:
+viewpoint.gui.material.default=Default
+viewpoint.gui.material.default_hint=Empty = default (stone bricks)
+viewpoint.gui.material.valid=Valid: %s
+viewpoint.gui.material.invalid=Unknown block name
+viewpoint.gui.material.invalid.render=That block cannot be shown
+viewpoint.gui.material.invalid.self=Cannot use the viewpoint block itself
+viewpoint.gui.material.preview.none=No icon
+viewpoint.gui.material.hint=e.g. minecraft:stonebrick
+viewpoint.gui.waypoint_color=Waypoint Color:
+
+viewpoint.color.gold=Gold
+viewpoint.color.black=Black
+viewpoint.color.dark_blue=Dark Blue
+viewpoint.color.dark_green=Dark Green
+viewpoint.color.dark_aqua=Dark Aqua
+viewpoint.color.dark_red=Dark Red
+viewpoint.color.dark_purple=Dark Purple
+viewpoint.color.gray=Gray
+viewpoint.color.dark_gray=Dark Gray
+viewpoint.color.blue=Blue
+viewpoint.color.green=Green
+viewpoint.color.aqua=Aqua
+viewpoint.color.red=Red
+viewpoint.color.purple=Purple
+viewpoint.color.yellow=Yellow
+viewpoint.color.white=White
+viewpoint.color.light_blue=Light Blue
+viewpoint.color.pink=Pink
+viewpoint.color.brown=Brown
+
+viewpoint.hud.trigger=Press %s to synchronize
+viewpoint.hud.trigger.unbound=Bind the Trigger Viewpoint key in Controls
 
 viewpoint.task.name=Viewpoint Unlocked
 viewpoint.task.description=Unlock the specified viewpoint
