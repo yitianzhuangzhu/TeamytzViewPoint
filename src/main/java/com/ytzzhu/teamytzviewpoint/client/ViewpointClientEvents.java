@@ -1,6 +1,7 @@
 package com.ytzzhu.teamytzviewpoint.client;
 
 import com.ytzzhu.teamytzviewpoint.viewpoint.ViewpointCameraManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovementInput;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
@@ -11,10 +12,10 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
- * 鸟瞰运镜的客户端事件：输入、tick 推进、每帧相机采样。
+ * 鸟瞰运镜的客户端事件：输入（含 F5 屏蔽）、tick 推进、每帧相机采样。
  * <p>
- * 玩家本体的渲染不在这里 —— 它单独放在 {@link ViewpointPlayerRenderer}
- * （那件事需要"取消原版渲染 + 精确重画一次"两个配套事件，独立一类更好读）。
+ * 玩家本体的显示不在这里 —— 它单独放在 {@link ViewpointPlayerRenderer}
+ * （那件事需要"取消原版渲染 + 重画替身实体"两个配套事件，独立一类更好读）。
  */
 @SideOnly(Side.CLIENT)
 public class ViewpointClientEvents {
@@ -30,6 +31,14 @@ public class ViewpointClientEvents {
      */
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
+        // 鸟瞰期间屏蔽 F5（切换视角）：那会把 thirdPersonView 改成 1/2，
+        // 原版就会在玩家背后再拉出一段相机，和我们的环绕镜头打架。
+        // 关键：这里必须**照样调用一次 isPressed()** 把它内部那个"按下"标记消费掉，
+        // 否则原版轮询时仍会看到它被按下、照样切换。
+        if (Minecraft.getMinecraft().gameSettings.keyBindTogglePerspective.isPressed()
+                && ViewpointCameraManager.isActive()) {
+            return;
+        }
         if (ViewpointKeyBindings.TRIGGER.isPressed()) {
             ViewpointTrigger.triggerIfPossible();
         }
@@ -85,6 +94,28 @@ public class ViewpointClientEvents {
             ViewpointCameraManager.update();
             // 鸟瞰期间隐藏 HUD（等价于游戏自己的 F1）；动画结束或被中途打断时自动还原
             ViewpointHud.sync(ViewpointCameraManager.isActive());
+            lockPerspective();
+        }
+    }
+
+    /**
+     * 把第三人称档位锁回开演时的值。
+     * <p>
+     * 上面 {@code onKeyInput} 拦的是"我们抢先处理"的那条路；这里再兜一道底：
+     * 键位轮询、别的 mod、玩家改设置等任何路径把它改掉，下一 tick 都会被拨回来。
+     * 只在值真的不同才写，避免每 tick 无意义地写字段。
+     */
+    private void lockPerspective() {
+        if (!ViewpointCameraManager.isActive()) {
+            return;
+        }
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.gameSettings == null) {
+            return;
+        }
+        int locked = ViewpointCameraManager.frozenThirdPersonView();
+        if (mc.gameSettings.thirdPersonView != locked) {
+            mc.gameSettings.thirdPersonView = locked;
         }
     }
 

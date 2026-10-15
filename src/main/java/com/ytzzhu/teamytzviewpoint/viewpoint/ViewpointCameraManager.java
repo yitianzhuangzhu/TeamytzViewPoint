@@ -35,6 +35,8 @@ public final class ViewpointCameraManager {
 
     /** 相机实体用负数 id：远离服务端实体的 id 段，不会撞上任何同步下来的实体。 */
     private static final int CAMERA_ENTITY_ID = -2100000;
+    /** 玩家替身实体用负数 id（同上）。 */
+    private static final int ACTOR_ENTITY_ID = -2100001;
 
     /** 拉远（从眼睛升到环绕圈起点）。 */
     private static final int PULLBACK_DURATION = 60;
@@ -70,6 +72,8 @@ public final class ViewpointCameraManager {
     private boolean active;
     private int elapsedTicks;
     private CinematicCamera camera;
+    /** 玩家替身实体（客户端专属"假玩家"）。 */
+    private ViewpointPlayerActor actor;
     /** 相机实体所在的那个客户端世界（收尾时要往它里面删实体，所以必须是 WorldClient 类型）。 */
     private WorldClient cameraWorld;
     private Entity previousViewEntity;
@@ -77,6 +81,13 @@ public final class ViewpointCameraManager {
     private float frozenPitch;
     /** 开演时冻结的玩家眼高（站着 1.62，潜行/游泳会更低）。 */
     private float frozenEyeHeight;
+    /**
+     * 开演时玩家自己的第三人称档位。
+     * <p>
+     * 鸟瞰期间要把它锁住（见 {@code ViewpointClientEvents}）：F5 会把 {@code thirdPersonView}
+     * 切到 1/2，那会让原版把相机再往后拉一段，和我们的环绕镜头打架。
+     */
+    private int frozenThirdPersonView;
 
     /** 复用的采样结果，避免每帧分配。仅渲染线程访问。 */
     private final ViewpointCameraState state = new ViewpointCameraState();
@@ -126,6 +137,7 @@ public final class ViewpointCameraManager {
         INSTANCE.elapsedTicks = 0;
         INSTANCE.frozenPitch = player.rotationPitch;
         INSTANCE.frozenEyeHeight = player.getEyeHeight();
+        INSTANCE.frozenThirdPersonView = mc.gameSettings.thirdPersonView;
         INSTANCE.previousViewEntity = mc.getRenderViewEntity();
 
         currentState = ViewpointState.PULLBACK;
@@ -138,10 +150,28 @@ public final class ViewpointCameraManager {
 
         WorldClient world = (WorldClient) mc.world;
         INSTANCE.cameraWorld = world;
+
+        // 相机实体：接管 render view entity
         INSTANCE.camera = new CinematicCamera(world);
         INSTANCE.camera.setPosition(startPlayerX, startPlayerY, startPlayerZ);
         world.addEntityToWorld(CAMERA_ENTITY_ID, INSTANCE.camera);
         mc.setRenderViewEntity(INSTANCE.camera);
+
+        // 玩家替身：站在鸟瞰点上、只存在于客户端。用同一个 GameProfile 构造 → 皮肤自动一致。
+        // 它走原版实体的正常渲染通道，所以"鸟瞰时看不到自己"这件事不再依赖任何特殊条件。
+        INSTANCE.actor = new ViewpointPlayerActor(world, player.getGameProfile());
+        INSTANCE.actor.syncToPlayer(startPlayerX, startPlayerY, startPlayerZ);
+        world.addEntityToWorld(ACTOR_ENTITY_ID, INSTANCE.actor);
+    }
+
+    /** 玩家替身实体；没在播放时为 null。渲染层用它来画"站在鸟瞰点上的自己"。 */
+    public static ViewpointPlayerActor playerActor() {
+        return INSTANCE.actor;
+    }
+
+    /** 开演时玩家自己的第三人称档位（鸟瞰期间要锁回这个值，F5 不许切）。 */
+    public static int frozenThirdPersonView() {
+        return INSTANCE.frozenThirdPersonView;
     }
 
     /**
@@ -351,15 +381,21 @@ public final class ViewpointCameraManager {
         INSTANCE.active = false;
         Minecraft mc = Minecraft.getMinecraft();
 
-        // 1) 把相机实体从"它当时所在的那个世界"移除。
+        // 1) 把相机实体与玩家替身从"它们当时所在的那个世界"移除。
         //    换维度后 mc.world 已经是新世界，往新世界删是删不掉的，也没必要 —— 旧世界整个被丢掉了。
-        if (INSTANCE.camera != null && INSTANCE.cameraWorld != null && mc.world == INSTANCE.cameraWorld) {
-            INSTANCE.cameraWorld.removeEntityFromWorld(CAMERA_ENTITY_ID);
+        if (INSTANCE.cameraWorld != null && mc.world == INSTANCE.cameraWorld) {
+            if (INSTANCE.camera != null) {
+                INSTANCE.cameraWorld.removeEntityFromWorld(CAMERA_ENTITY_ID);
+            }
+            if (INSTANCE.actor != null) {
+                INSTANCE.cameraWorld.removeEntityFromWorld(ACTOR_ENTITY_ID);
+            }
         }
         INSTANCE.camera = null;
+        INSTANCE.actor = null;
         INSTANCE.cameraWorld = null;
 
-        // 2) 视角还给玩家，并复位演出期间被我们压住的朝向
+        // 2) 视角还给玩家，并复位演出期间被我们压住的朝向与第三人称档位
         if (mc.player != null) {
             mc.player.rotationYaw = startPlayerYaw;
             mc.player.rotationPitch = INSTANCE.frozenPitch;
