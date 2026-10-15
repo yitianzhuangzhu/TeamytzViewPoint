@@ -1,33 +1,23 @@
 package com.ytzzhu.teamytzviewpoint.client;
 
 import com.ytzzhu.teamytzviewpoint.viewpoint.ViewpointCameraManager;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MovementInput;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+/**
+ * 鸟瞰运镜的客户端事件：输入、tick 推进、每帧相机采样。
+ * <p>
+ * 玩家本体的渲染不在这里 —— 它单独放在 {@link ViewpointPlayerRenderer}
+ * （那件事需要"取消原版渲染 + 精确重画一次"两个配套事件，独立一类更好读）。
+ */
 @SideOnly(Side.CLIENT)
 public class ViewpointClientEvents {
-
-    /** 为 true 时表示我们自己的强制重画正在执行（防止 RenderLivingEvent.Post 自己数自己）。 */
-    private static boolean forceRenderingPlayer = false;
-
-    /** 本帧原版实体通道是否已经画过本地玩家。 */
-    private boolean playerRenderedThisFrame = false;
 
     // ================= 输入 =================
 
@@ -110,92 +100,5 @@ public class ViewpointClientEvents {
             return;
         }
         ViewpointCameraManager.updateCamera(event.renderTickTime);
-    }
-
-    /**
-     * 记录"本帧原版实体通道画过本地玩家没有"。
-     * <p>
-     * 相机是独立实体、玩家也没被隐藏，所以正常情况下原版就会把站在鸟瞰点上的玩家画出来，
-     * 这里只是数一下；只有原版没画（例如玩家处于隐身状态）才需要下面兜底重画一次。
-     */
-    @SubscribeEvent
-    public void onRenderLivingPost(RenderLivingEvent.Post<EntityLivingBase> event) {
-        if (forceRenderingPlayer) {
-            return;
-        }
-        EntityPlayer localPlayer = Minecraft.getMinecraft().player;
-        if (localPlayer != null && event.getEntity() == localPlayer) {
-            playerRenderedThisFrame = true;
-        }
-    }
-
-    /**
-     * 兜底：原版这一帧没画本地玩家时（典型是隐身），在鸟瞰期间补画一次。
-     * <p>
-     * 位置/朝向用开演时冻结的快照 —— 鸟瞰期间玩家实体的朝向被我们压住、位置也没动过，
-     * 所以这里只需要临时把"画在哪"覆盖掉，画完立刻还原，<b>不需要</b>旧版那套
-     * "快照整个实体的渲染相关字段再回填"的重型补丁（那是 freecam 会搅动玩家实体才需要的）。
-     */
-    @SubscribeEvent
-    public void onRenderWorldLast(RenderWorldLastEvent event) {
-        boolean overlooking = ViewpointCameraManager.isActive();
-        boolean needFallback = overlooking && !playerRenderedThisFrame;
-        this.playerRenderedThisFrame = false;
-        if (!needFallback) {
-            return;
-        }
-
-        Minecraft mc = Minecraft.getMinecraft();
-        EntityPlayer player = mc.player;
-        if (!(player instanceof AbstractClientPlayer)) {
-            return;
-        }
-
-        RenderManager renderManager = mc.getRenderManager();
-        Render<?> render = renderManager.getEntityRenderObject(player);
-        if (!(render instanceof RenderPlayer)) {
-            return;
-        }
-
-        double x = ViewpointCameraManager.startPlayerX;
-        double y = ViewpointCameraManager.startPlayerY;
-        double z = ViewpointCameraManager.startPlayerZ;
-        float yaw = ViewpointCameraManager.startPlayerYaw;
-
-        // 只临时改"画在哪"这四个量；玩家实体本身在鸟瞰期间没被动过，画完原样填回即可
-        double savedPosX = player.posX;
-        double savedPosY = player.posY;
-        double savedPosZ = player.posZ;
-        float savedYaw = player.rotationYaw;
-        double savedPrevX = player.prevPosX;
-        double savedPrevY = player.prevPosY;
-        double savedPrevZ = player.prevPosZ;
-        float savedPrevYaw = player.prevRotationYaw;
-
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ);
-        forceRenderingPlayer = true;
-        try {
-            player.posX = x;
-            player.posY = y;
-            player.posZ = z;
-            player.prevPosX = x;
-            player.prevPosY = y;
-            player.prevPosZ = z;
-            player.rotationYaw = yaw;
-            player.prevRotationYaw = yaw;
-            ((RenderPlayer) render).doRender((AbstractClientPlayer) player, x, y, z, yaw, event.getPartialTicks());
-        } finally {
-            forceRenderingPlayer = false;
-            player.posX = savedPosX;
-            player.posY = savedPosY;
-            player.posZ = savedPosZ;
-            player.prevPosX = savedPrevX;
-            player.prevPosY = savedPrevY;
-            player.prevPosZ = savedPrevZ;
-            player.rotationYaw = savedYaw;
-            player.prevRotationYaw = savedPrevYaw;
-            GlStateManager.popMatrix();
-        }
     }
 }

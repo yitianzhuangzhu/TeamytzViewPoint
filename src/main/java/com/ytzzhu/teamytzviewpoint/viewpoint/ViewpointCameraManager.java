@@ -100,6 +100,11 @@ public final class ViewpointCameraManager {
         return startPlayerY + INSTANCE.frozenEyeHeight;
     }
 
+    /** 开演前冻结的玩家俯仰 —— 强制重画玩家本体时要用它，否则身体会跟着鼠标转。 */
+    public static float startPlayerPitch() {
+        return INSTANCE.frozenPitch;
+    }
+
     /**
      * 开始鸟瞰：造相机实体、接管 render view entity、冻结玩家朝向。
      * <p>
