@@ -64,7 +64,7 @@ public final class ViewpointTrigger {
 
     /**
      * 触发鸟瞰：通知服务端做解锁记录（"按键完全接管"了原来空手右键的解锁职责），
-     * 然后在本地开始鸟瞰动画。动画本身是纯客户端的（freecam）。
+     * 然后在本地开始鸟瞰动画。动画本身是纯客户端的（独立相机实体，不需要任何前置 mod）。
      */
     public static void trigger(BlockPos pos) {
         Minecraft mc = Minecraft.getMinecraft();

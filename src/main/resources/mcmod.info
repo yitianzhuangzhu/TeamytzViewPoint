@@ -11,6 +11,6 @@
   "credits": "Everyone who made Minecraft better",
   "logoFile": "assets/teamytzviewpoint/modlogo.png",
   "screenshots": [],
-  "dependencies": ["required-after:freecam@[2.0.0,)"]
+  "dependencies": []
 }
 ]

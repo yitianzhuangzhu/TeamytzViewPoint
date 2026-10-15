@@ -17,7 +17,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 /**
  * 客户端 → 服务端：玩家站在鸟瞰点上按下了触发键。
  * <p>
- * 鸟瞰动画本身是纯客户端行为（freecam），不需要服务端参与；这个包只负责把
+ * 鸟瞰动画本身是纯客户端行为（独立相机实体接管 render view entity），不需要服务端参与；这个包只负责把
  * "解锁"这件事搬到服务端来做 —— 也就是原来"空手右键"时 {@code ViewpointBlock.onBlockActivated}
  * 里做的那两件事：写 {@link ViewpointUnlockData}、给玩家发"已解锁"消息。
  * FTBQuests 的解锁任务靠轮询 {@code unlockData.hasUnlocked(uuid, 名字)} 判定，所以这条链必须保留。

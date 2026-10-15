@@ -10,7 +10,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * 实现就是改 {@code Minecraft.gameSettings.hideGUI}，vanilla 的 F1 按下的也正是这个字段。
  * <p>
  * 为什么是"每 tick 同步"而不是在动画开始/结束处各调一次：
- * 动画可能被外力打断（freecam 被玩家自己按键关掉、退出世界、维度切换），
+ * 动画可能被外力打断（退出世界、维度切换、掉线），
  * 那些路径不会走到 {@code updateReturning()} 的正常收尾，状态可能停在 PULLBACK/ORBITING。
  * 每 tick 拿 {@code isActive()} 对一次账，任何异常路径都会自动还原，不会把玩家的 HUD 永久关掉。
  * <p>

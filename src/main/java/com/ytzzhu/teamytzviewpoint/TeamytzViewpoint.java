@@ -4,7 +4,6 @@ import com.ytzzhu.teamytzviewpoint.blocks.ViewpointTileEntity;
 import com.ytzzhu.teamytzviewpoint.client.ViewpointClientEvents;
 import com.ytzzhu.teamytzviewpoint.client.ViewpointHudRenderer;
 import com.ytzzhu.teamytzviewpoint.client.ViewpointKeyBindings;
-import com.ytzzhu.teamytzviewpoint.client.ViewpointRenderHandler;
 import com.ytzzhu.teamytzviewpoint.client.render.ViewpointBlockRenderer;
 import com.ytzzhu.teamytzviewpoint.gui.ViewpointContainer;
 import com.ytzzhu.teamytzviewpoint.gui.ViewpointGui;
@@ -29,7 +28,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = TeamytzViewpoint.MODID, name = TeamytzViewpoint.NAME, version = TeamytzViewpoint.VERSION,
-     dependencies = "after:xaerominimap;required-after:freecam@[2.0.0,)")
+     dependencies = "after:xaerominimap")
 public class TeamytzViewpoint implements IGuiHandler
 {
     public static final String MODID = "teamytzviewpoint";
@@ -61,8 +60,10 @@ public class TeamytzViewpoint implements IGuiHandler
     public void init(FMLInitializationEvent event)
     {
         if (event.getSide() == Side.CLIENT) {
+            // 相机接管 / 输入锁 / 兜底重画玩家都在 ViewpointClientEvents 里（不再有单独的
+            // ViewpointRenderHandler：那套"冻结玩家姿态 + 强制重画"是 freecam 时代为了
+            // 抵消 freecam 搅动玩家实体才需要的，换成独立相机实体后整体作废）
             MinecraftForge.EVENT_BUS.register(new ViewpointClientEvents());
-            MinecraftForge.EVENT_BUS.register(new ViewpointRenderHandler());
             MinecraftForge.EVENT_BUS.register(new ViewpointHudRenderer());
             // 注册"触发鸟瞰点"键位（默认 V，玩家可在"控制"里改）
             ViewpointKeyBindings.register();
