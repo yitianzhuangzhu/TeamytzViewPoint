@@ -285,7 +285,20 @@ public final class ViewpointCameraManager {
             out.x = lerp(focusX, orbitX(base, 0.0D, focusX), p);
             out.y = lerp(focusY, orbitY, p);
             out.z = lerp(focusZ, orbitZ(base, 0.0D, focusZ), p);
+
+            // 朝向**不能**直接取 lookAt 的结果 —— 这是拉远段"过渡突兀"的真正原因：
+            // 拉远路径是"后退 ORBIT_RADIUS、上升 ORBIT_HEIGHT"的一条固定斜线，两个分量按
+            // 同一进度同比缩放，于是"看向焦点"的俯角恒等于 -atan2(ORBIT_HEIGHT, ORBIT_RADIUS)
+            // ≈ -38.7°，**与进度无关**。直接用它的话，相机一离开眼睛（水平距离刚过 lookAt
+            // 的 0.5 格门槛，约第 5 tick）俯角就会从玩家原视角一下子折到 -38.7°。
+            // 归位段没有这个问题，因为它把 lookAt 的结果按进度混合回了玩家朝向，
+            // 这里用同一个办法：先算出"看向焦点"的朝向，再按同一进度从玩家原视角混合过去。
+            //   p=0  -> 与玩家原视角完全一致（接管那一帧画面不跳）
+            //   p=1  -> 与环绕段起始朝向完全重合（进入环绕不跳）
+            // 混合后玩家在这 3 秒里始终留在画面内（中段最多偏下约 19°，小于默认 FOV 的半角 35°）。
             lookAt(out, focusX, focusY, focusZ, startPlayerYaw, this.frozenPitch);
+            out.yaw = startPlayerYaw + wrapDegrees(out.yaw - startPlayerYaw) * p;
+            out.pitch = this.frozenPitch + (out.pitch - this.frozenPitch) * p;
 
         } else if (time < PULLBACK_DURATION + ORBIT_DURATION) {
             // ---- 环绕：绕焦点转一整圈，高度不变 ----
