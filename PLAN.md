@@ -830,7 +830,7 @@ private ItemStack previewStack() {
 | R17 | **`destroyStage` 裂纹不显示**（TESR 接管后原版破坏进度纹理默认不画） | 低 | 可选实现（U2）。破坏动画仍有"方块消失"的反馈，且不影响玩法。若要实现，先核对签名 |
 | R18 | **`getRenderType=INVISIBLE` 后粒子/破坏特效变化** | 低 | 与 R4 同源。**不要**为此去改 `isOpaqueCube`/`getBoundingBox`（会违反"不改玩法"约束） |
 | R19 | **构建环境**：无系统 JDK、wrapper 4.9、`org.gradle.daemon=false` | 低 | 只用 mc_gradle 触发 `gradlew.bat`；JDK 8 由 `gradlew.bat` 头部回退逻辑自动注入；**不要**手写 `org.gradle.java.home`（换机器会直接拒绝启动） |
-| R20 | **libs/ 里的 vendored jar**（FTBQuests/FTBLib/Ambience/ItemFilters/freecam） | 低 | `build.gradle` 里是 `compile fileTree(dir: 'libs', include: ['*.jar'])`，新增代码**不引用**它们，不受影响；也不要删/换这几个 jar |
+| R20 | **libs/ 里的 vendored jar**（FTBQuests/FTBLib/Ambience/ItemFilters/xaero 三件套/mixin） | 低 | `build.gradle` 里是 `compile fileTree(dir: 'libs', include: ['*.jar'])`，新增代码**不引用**它们，不受影响；**改动依赖时同步这一行**（相机改为独立实体接管后已不再需要任何第三方相机前置 jar） |
 | R21 | **mixin 现有 1 条警告**（`MixinAbstractClientPlayer` 的 `@Inject` 描述符） | 低 | 既有问题，与本次改动无关；`defaultRequire = 1` 意味着运行期找不到目标会崩 —— **本次不改 mixin**，验收时若客户端启动即崩且日志指向该 mixin，应判定为既有问题而非本功能回归 |
 | R22 | **同一个包/注册名的 `String` 大小写**：`Minecraft:StoneBrick` | 低 | `normalize` 里 `toLowerCase(Locale.ROOT)`；`Locale.ROOT` 避免土耳其语 `I/i` 问题 |
 | R23 | **`BlockPos.fromLong` 与 `protocolVersion` 字节** | 低 | 放在最前面导致新旧混搭时解析失败并断连（**故意**，好过静默错位）。发布时必须客户端/服务端同版本 |

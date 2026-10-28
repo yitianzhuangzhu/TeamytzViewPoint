@@ -15,7 +15,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * 开演时造一个 {@link CinematicCamera} 实体丢进客户端世界，然后
  * {@code Minecraft.setRenderViewEntity(相机)} —— 从那以后原版相机的位置/朝向完全由我们决定。
  * 这是旁观模式和 ReplayMod 的 {@code CameraEntity} 走的同一条路，
- * <b>不需要反射任何第三方 mod 的私有字段，也不再需要 freecam 作为前置</b>。
+ * <b>不需要反射任何第三方 mod 的私有字段，也不再依赖任何第三方相机前置 mod</b>。
  *
  * <h3>为什么每帧重算而不是每 tick 累加</h3>
  * 运镜是"时间的纯函数"：{@code sample(time, out)} 在任意时刻都能求值。

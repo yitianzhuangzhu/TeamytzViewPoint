@@ -12,14 +12,15 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * 把 {@code Minecraft.setRenderViewEntity(这个实体)} 一设，原版相机的位置/朝向就完全由我们决定 ——
  * {@code EntityRenderer.orientCamera} 的位置、眼高、yaw/pitch 全部只从 render view entity 取。
  * 这正是旁观模式与 ReplayMod 的 {@code CameraEntity} 走的同一条路，
- * <b>不需要反射任何第三方 mod 的私有字段，也不需要 freecam 之类的前置 mod</b>。
+ * <b>不需要反射任何第三方 mod 的私有字段，也不需要任何第三方相机前置 mod</b>。
  * <p>
  * 它被放进客户端世界（{@code WorldClient.addEntityToWorld}），让区块/视锥/雾的计算跟着它走；
  * 服务端完全不知道它存在，所以它不受伤、不存档、不参与任何同步。
  * <p>
- * <b>为什么"把玩家实体挪来挪去"的老做法必须换掉</b>：freecam 那套是把玩家实体传送到相机位置、
- * 再每帧改写它的朝向。副作用是玩家的 {@code renderYawOffset / chasingPos / limbSwing /
- * cameraYaw} 全被搅动，身体和披风会乱转，于是不得不额外做一套"冻结玩家姿态再强制重画"的补丁。
+ * <b>为什么"把玩家实体挪来挪去"的老做法必须换掉</b>：那种做法是把玩家实体传送到相机位置、
+ * 再每帧改写它的朝向（借第三方相机 mod 的私有字段实现）。副作用是玩家的
+ * {@code renderYawOffset / chasingPos / limbSwing / cameraYaw} 全被搅动，身体和披风会乱转，
+ * 于是不得不额外做一套"冻结玩家姿态再强制重画"的补丁。
  * 用独立相机实体之后，玩家实体的位置与朝向在整个动画期间<b>完全没被动过</b>，
  * 原版实体的渲染通道会自然地把站在鸟瞰点上的玩家照常画出来（第三人称看自己），
  * 那套补丁（姿态快照 + 强制重画）也就整体不需要了。
