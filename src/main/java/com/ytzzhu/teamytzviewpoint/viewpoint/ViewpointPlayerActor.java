@@ -90,10 +90,18 @@ public class ViewpointPlayerActor extends EntityOtherPlayerMP {
     public void syncToPlayer(double x, double y, double z) {
         EntityPlayer p = live();
 
-        // 位置：prev 与 cur 写同一个值，渲染插值恒等于它，不会抖
-        this.prevPosX = this.posX = this.lastTickPosX = x;
-        this.prevPosY = this.posY = this.lastTickPosY = y;
-        this.prevPosZ = this.posZ = this.lastTickPosZ = z;
+        // 位置：必须走 setPosition —— 它会同时重建 AxisAlignedBB（包围盒）。
+        // 只写 posX/posY/posZ 的话包围盒会一直停在实体创建时的位置（原点），
+        // 而原版 RenderGlobal 的视锥剔除正是拿 getEntityBoundingBox() 判断的，
+        // 于是这个实体每帧都被判成"在视野外"，原版实体通道一次都不会画它。
+        this.setPosition(x, y, z);
+        // prev/last 与 cur 一致：原版 prevPos + (pos-prevPos)*partialTicks 插值恒等于它，不抖
+        this.prevPosX = x;
+        this.prevPosY = y;
+        this.prevPosZ = z;
+        this.lastTickPosX = x;
+        this.lastTickPosY = y;
+        this.lastTickPosZ = z;
 
         if (p == null) {
             return;
