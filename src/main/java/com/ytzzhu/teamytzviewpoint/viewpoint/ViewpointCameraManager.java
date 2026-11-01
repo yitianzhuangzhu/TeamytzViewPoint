@@ -164,9 +164,25 @@ public final class ViewpointCameraManager {
         world.addEntityToWorld(ACTOR_ENTITY_ID, INSTANCE.actor);
     }
 
-    /** 玩家替身实体；没在播放时为 null。渲染层用它来画"站在鸟瞰点上的自己"。 */
+    /** 玩家替身实体；没在播放时为 null。 */
     public static ViewpointPlayerActor playerActor() {
         return INSTANCE.actor;
+    }
+
+    /**
+     * 把替身的位置/姿态对齐到"冻结的鸟瞰点 + 玩家当前动作"。
+     * <p>
+     * <b>必须在原版实体渲染通道之前调用</b>（{@code RenderTickEvent.START} 正好在
+     * {@code updateCameraAndRender} 之前）。替身是放进客户端世界的普通实体，
+     * 由原版实体通道按正常 GL 状态绘制 —— 这样就不必在 {@code RenderWorldLastEvent}
+     * 里自己画，也就不会继承那一刻残留的着色/混合状态。
+     */
+    public static void updateActorPose() {
+        if (!INSTANCE.active || INSTANCE.actor == null) {
+            return;
+        }
+        // prev 与 cur 写成同一个值 → 原版的 prevPos + (pos-prevPos)*partialTicks 插值恒等于它
+        INSTANCE.actor.syncToPlayer(startPlayerX, startPlayerY, startPlayerZ);
     }
 
     /** 开演时玩家自己的第三人称档位（鸟瞰期间要锁回这个值，F5 不许切）。 */

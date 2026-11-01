@@ -124,12 +124,17 @@ public class ViewpointClientEvents {
      * <p>
      * 必须用 {@code RenderTickEvent.START}：它在 {@code entityRenderer.updateCameraAndRender}
      * 之前发出，{@code renderTickTime} 就是这一帧的 partialTicks。
+     * <p>
+     * 同一个时机也把玩家替身的位置/姿态摆好 —— 之后原版实体通道就会用<b>正常的 GL 状态</b>
+     * 把替身画出来。这就是为什么不需要在 {@code RenderWorldLastEvent} 里自己画它
+     * （在那里画会继承整帧残留的着色/混合状态，表现为身体发蓝半透明而披风正常）。
      */
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if (event.phase != TickEvent.Phase.START) {
             return;
         }
+        ViewpointCameraManager.updateActorPose();
         ViewpointCameraManager.updateCamera(event.renderTickTime);
     }
 }
