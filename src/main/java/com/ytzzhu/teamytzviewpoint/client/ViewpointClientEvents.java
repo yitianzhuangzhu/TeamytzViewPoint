@@ -33,10 +33,16 @@ public class ViewpointClientEvents {
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         // 鸟瞰期间屏蔽 F5（切换视角）：那会把 thirdPersonView 改成 1/2，
         // 原版就会在玩家背后再拉出一段相机，和我们的环绕镜头打架。
-        // 关键：这里必须**照样调用一次 isPressed()** 把它内部那个"按下"标记消费掉，
-        // 否则原版轮询时仍会看到它被按下、照样切换。
-        if (Minecraft.getMinecraft().gameSettings.keyBindTogglePerspective.isPressed()
-                && ViewpointCameraManager.isActive()) {
+        //
+        // **求值顺序在这里是致命的，不要调换**：
+        // KeyBinding.isPressed() 不是"只读查询"，它会把内部 pressTime 递减并返回是否按过
+        // （javap 核对：if (pressTime != 0) { pressTime--; return true; }）。
+        // 所以必须先用 isActive() 短路，**只有鸟瞰期间**才会调用 isPressed() 去消费这次按下。
+        // 反过来写（先 isPressed() 再 isActive()）的话，非鸟瞰期间也会把按键消费掉，
+        // 原版 processKeyBinds() 随后再查就拿到 false —— 表现为 F5 全局失效，
+        // 动画结束后也切不了视角。
+        if (ViewpointCameraManager.isActive()
+                && Minecraft.getMinecraft().gameSettings.keyBindTogglePerspective.isPressed()) {
             return;
         }
         if (ViewpointKeyBindings.TRIGGER.isPressed()) {
