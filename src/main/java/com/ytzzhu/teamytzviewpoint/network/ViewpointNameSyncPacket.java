@@ -14,28 +14,34 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 
 /**
- * 服务端 -> 客户端：把权威的名称与外观材质同步给客户端。
+ * 服务端 -> 客户端：把权威的名称、外观材质、路径点颜色与<b>解锁状态</b>同步给客户端。
  * 线格式（PLAN §7.1）与 ViewpointUpdatePacket 逐字段一致。
+ * <p>
+ * 解锁状态必须走这个包，不能指望原版同步：{@code SPacketBlockChange} 只带方块状态、
+ * 不带方块实体数据，所以服务端解锁后客户端不会自动知道（图标也就不会变绿）。
+ * 换维度/重进世界时则走 {@code getUpdateTag()} / {@code handleUpdateTag()}，无需本包。
  */
 public class ViewpointNameSyncPacket implements IMessage {
     
-    /** 线格式版本，放在最前面；混版时旧解析方会立刻错位失败。2 = 追加了路径点颜色。 */
-    private static final byte PROTOCOL_VERSION = 2;
+    /** 线格式版本，放在最前面；混版时旧解析方会立刻错位失败。3 = 追加了解锁状态。 */
+    private static final byte PROTOCOL_VERSION = 3;
     
     private byte protocolVersion = PROTOCOL_VERSION;
     private BlockPos pos;
     private String name;
     private String material;
     private int color = ViewpointWaypointColors.defaultColor();
+    private boolean unlocked;
     
     public ViewpointNameSyncPacket() {
     }
     
-    public ViewpointNameSyncPacket(BlockPos pos, String name, String material, int color) {
+    public ViewpointNameSyncPacket(BlockPos pos, String name, String material, int color, boolean unlocked) {
         this.pos = pos;
         this.name = name;
         this.material = material;
         this.color = color;
+        this.unlocked = unlocked;
     }
     
     @Override
@@ -45,6 +51,7 @@ public class ViewpointNameSyncPacket implements IMessage {
         this.name = readString(buf);
         this.material = readString(buf);
         this.color = buf.readInt();
+        this.unlocked = buf.readBoolean();
     }
     
     @Override
@@ -54,6 +61,7 @@ public class ViewpointNameSyncPacket implements IMessage {
         writeString(buf, name);
         writeString(buf, material);
         buf.writeInt(color);
+        buf.writeBoolean(unlocked);
     }
     
     /** 写一个带长度前缀的 UTF-8 字符串；null 按空串写。 */
@@ -84,10 +92,13 @@ public class ViewpointNameSyncPacket implements IMessage {
                     if (world != null) {
                         TileEntity tileEntity = world.getTileEntity(message.pos);
                         if (tileEntity instanceof ViewpointTileEntity) {
-                            ((ViewpointTileEntity) tileEntity).setName(message.name);
+                            ViewpointTileEntity viewpoint = (ViewpointTileEntity) tileEntity;
+                            viewpoint.setName(message.name);
                             // 非法材质不在这里重复校验，由 ViewpointMaterial.getRenderStateOrDefault 在渲染时兜底
-                            ((ViewpointTileEntity) tileEntity).setMaterial(message.material);
-                            ((ViewpointTileEntity) tileEntity).setWaypointColor(message.color);
+                            viewpoint.setMaterial(message.material);
+                            viewpoint.setWaypointColor(message.color);
+                            // 解锁状态：方块上方的图标据此在白色/绿色之间切换
+                            viewpoint.setUnlocked(message.unlocked);
                         }
                     }
                 });

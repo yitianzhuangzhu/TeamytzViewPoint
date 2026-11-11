@@ -9,9 +9,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -95,6 +97,81 @@ public class ViewpointBlockRenderer extends TileEntitySpecialRenderer<ViewpointT
         } finally {
             buffer.setTranslation(0.0D, 0.0D, 0.0D);        // 平移绝不能泄漏给后续渲染
             GlStateManager.enableLighting();               // 恢复 GL 状态
+            GlStateManager.popMatrix();
+        }
+
+        // 方块本体的 GL 状态已经收干净了，再单独画上方的图标（自己管理状态）
+        renderIcon(te, x, y, z);
+    }
+
+    // ================= 方块上方的鸟瞰点图标 =================
+
+    /** 图标贴图：未解锁（白）/ 已解锁（绿）。 */
+    private static final ResourceLocation ICON_LOCKED =
+            new ResourceLocation("teamytzviewpoint", "textures/entity/viewpoint_icon.png");
+    private static final ResourceLocation ICON_UNLOCKED =
+            new ResourceLocation("teamytzviewpoint", "textures/entity/viewpoint_icon_unlocked.png");
+
+    /** 图标中心的高度：方块顶面(y+1)往上 0.55 格。 */
+    private static final double ICON_HEIGHT = 1.55D;
+    /** 图标边长（格）。贴图是 32x32 的方形。 */
+    private static final float ICON_SIZE = 0.9F;
+    /** 超过这个距离就不画：TESR 会遍历视野内所有方块实体，远处的小图标不值得每帧画。 */
+    private static final double ICON_MAX_DISTANCE_SQ = 48.0D * 48.0D;
+
+    /**
+     * 在鸟瞰点方块上方画一个<b>始终正对镜头</b>的图标；解锁后换成绿色那张。
+     * <p>
+     * 朝向用标准的 billboard 写法：先按相机 yaw 反向旋转、再按 pitch 旋转，
+     * 于是无论玩家在哪个方位看，它都正对镜头。相机 yaw/pitch 取自
+     * {@code RenderManager.playerViewY/playerViewX}（由 {@code cacheActiveRenderInfo} 每帧写入，
+     * 鸟瞰期间也跟着我们的相机实体走，所以环绕时图标会一直面向镜头）。
+     * <p>
+     * 传入的 {@code x/y/z} 是<b>相机相对坐标</b>，向量长度就是到相机的距离，可直接用来做距离剔除。
+     */
+    private void renderIcon(ViewpointTileEntity te, double x, double y, double z) {
+        if (x * x + y * y + z * z > ICON_MAX_DISTANCE_SQ) {
+            return;
+        }
+
+        Minecraft mc = Minecraft.getMinecraft();
+        RenderManager renderManager = mc.getRenderManager();
+
+        mc.getTextureManager().bindTexture(te.isUnlocked() ? ICON_UNLOCKED : ICON_LOCKED);
+
+        GlStateManager.pushMatrix();
+        try {
+            // 图标不参与光照，按贴图原色显示；半透明像素要开混合
+            GlStateManager.disableLighting();
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(
+                    GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                    GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            GlStateManager.disableCull();      // 双面可见，正对镜头时不会因为绕序被剔掉
+            GlStateManager.depthMask(false);   // 半透明贴图不写深度
+
+            GlStateManager.translate(x + 0.5D, y + ICON_HEIGHT, z + 0.5D);
+            GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+            // 第三人称"正面视角"(thirdPersonView == 2) 时 pitch 要取反，否则图标会上下颠倒
+            float pitch = renderManager.playerViewX * (mc.gameSettings.thirdPersonView == 2 ? -1.0F : 1.0F);
+            GlStateManager.rotate(pitch, 1.0F, 0.0F, 0.0F);
+            GlStateManager.scale(ICON_SIZE, ICON_SIZE, ICON_SIZE);
+
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder buffer = tessellator.getBuffer();
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+            buffer.pos(-0.5D, -0.5D, 0.0D).tex(0.0D, 1.0D).endVertex();
+            buffer.pos(0.5D, -0.5D, 0.0D).tex(1.0D, 1.0D).endVertex();
+            buffer.pos(0.5D, 0.5D, 0.0D).tex(1.0D, 0.0D).endVertex();
+            buffer.pos(-0.5D, 0.5D, 0.0D).tex(0.0D, 0.0D).endVertex();
+            tessellator.draw();
+        } finally {
+            // 状态一定要复原：TESR 后面还会画别的方块实体与实体
+            GlStateManager.depthMask(true);
+            GlStateManager.enableCull();
+            GlStateManager.disableBlend();
+            GlStateManager.enableLighting();
             GlStateManager.popMatrix();
         }
     }

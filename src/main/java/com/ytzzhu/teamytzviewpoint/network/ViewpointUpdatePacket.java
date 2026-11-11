@@ -127,7 +127,7 @@ public class ViewpointUpdatePacket implements IMessage {
                 viewpoint.markDirty();
                 
                 // 回发权威结果给编辑者，并广播给附近所有玩家（修复"别人看不到外观变化"）
-                ViewpointNameSyncPacket sync = new ViewpointNameSyncPacket(pos, name, material, color);
+                ViewpointNameSyncPacket sync = new ViewpointNameSyncPacket(pos, name, material, color, viewpoint.isUnlocked());
                 TeamytzViewpoint.instance.network.sendTo(sync, player);
                 TeamytzViewpoint.instance.network.sendToAllAround(sync, new NetworkRegistry.TargetPoint(
                         world.provider.getDimension(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64.0));

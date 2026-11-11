@@ -1,5 +1,6 @@
 package com.ytzzhu.teamytzviewpoint.network;
 
+import com.ytzzhu.teamytzviewpoint.TeamytzViewpoint;
 import com.ytzzhu.teamytzviewpoint.blocks.ViewpointBlock;
 import com.ytzzhu.teamytzviewpoint.blocks.ViewpointTileEntity;
 import com.ytzzhu.teamytzviewpoint.data.ViewpointUnlockData;
@@ -10,6 +11,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -88,6 +90,14 @@ public class ViewpointTriggerPacket implements IMessage {
                 viewpoint.setUnlocked(true);
                 ViewpointUnlockData.get(world).unlockViewpoint(player.getUniqueID(), name);
                 player.sendMessage(new TextComponentTranslation("viewpoint.message.unlocked", name));
+
+                // 把解锁状态同步给附近所有玩家：方块上方的图标据此从白色切成绿色。
+                // **不能指望原版同步**：SPacketBlockChange 只带方块状态，不带方块实体数据，
+                // 所以服务端 setUnlocked 之后客户端不会自动知道。
+                ViewpointNameSyncPacket sync = new ViewpointNameSyncPacket(
+                        pos, name, viewpoint.getMaterial(), viewpoint.getWaypointColor(), true);
+                TeamytzViewpoint.instance.network.sendToAllAround(sync, new NetworkRegistry.TargetPoint(
+                        world.provider.getDimension(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 64.0));
             });
 
             return null;

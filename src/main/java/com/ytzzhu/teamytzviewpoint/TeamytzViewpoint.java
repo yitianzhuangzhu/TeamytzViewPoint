@@ -29,7 +29,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = TeamytzViewpoint.MODID, name = TeamytzViewpoint.NAME, version = TeamytzViewpoint.VERSION,
-     dependencies = "after:xaerominimap")
+     dependencies = "required-after:mixinbooter;after:xaerominimap")
 public class TeamytzViewpoint implements IGuiHandler
 {
     public static final String MODID = "teamytzviewpoint";
