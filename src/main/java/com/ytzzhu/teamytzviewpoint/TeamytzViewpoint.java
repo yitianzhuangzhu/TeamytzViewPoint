@@ -6,6 +6,7 @@ import com.ytzzhu.teamytzviewpoint.client.ViewpointHudRenderer;
 import com.ytzzhu.teamytzviewpoint.client.ViewpointKeyBindings;
 import com.ytzzhu.teamytzviewpoint.client.ViewpointPlayerRenderer;
 import com.ytzzhu.teamytzviewpoint.client.render.ViewpointBlockRenderer;
+import com.ytzzhu.teamytzviewpoint.config.ConfigHandler;
 import com.ytzzhu.teamytzviewpoint.gui.ViewpointContainer;
 import com.ytzzhu.teamytzviewpoint.gui.ViewpointGui;
 import com.ytzzhu.teamytzviewpoint.network.ViewpointNameSyncPacket;
@@ -34,7 +35,7 @@ public class TeamytzViewpoint implements IGuiHandler
 {
     public static final String MODID = "teamytzviewpoint";
     public static final String NAME = "Teamytz Viewpoint";
-    public static final String VERSION = "4.0.0";
+    public static final String VERSION = "4.1.0";
     
     @Mod.Instance(MODID)
     public static TeamytzViewpoint instance;
@@ -49,6 +50,8 @@ public class TeamytzViewpoint implements IGuiHandler
     {
         logger = event.getModLog();
         logger.info("TeamytzViewpoint initialized!");
+        // 配置文件（config/teamytzviewpoint.cfg）：先读，后面各处直接用 ConfigHandler 里的静态字段
+        ConfigHandler.init(event);
         GameRegistry.registerTileEntity(ViewpointTileEntity.class, "teamytzviewpoint:viewpoint_tile_entity");
         network = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
         network.registerMessage(ViewpointUpdatePacket.Handler.class, ViewpointUpdatePacket.class, 0, Side.SERVER);

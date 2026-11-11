@@ -2,6 +2,7 @@ package com.ytzzhu.teamytzviewpoint.client.render;
 
 import com.ytzzhu.teamytzviewpoint.blocks.ViewpointMaterial;
 import com.ytzzhu.teamytzviewpoint.blocks.ViewpointTileEntity;
+import com.ytzzhu.teamytzviewpoint.config.ConfigHandler;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.block.state.IBlockState;
@@ -130,6 +131,10 @@ public class ViewpointBlockRenderer extends TileEntitySpecialRenderer<ViewpointT
      * 传入的 {@code x/y/z} 是<b>相机相对坐标</b>，向量长度就是到相机的距离，可直接用来做距离剔除。
      */
     private void renderIcon(ViewpointTileEntity te, double x, double y, double z) {
+        // 配置文件总开关（config/teamytzviewpoint.cfg -> [鸟瞰点图标] renderViewpointIcon）
+        if (!ConfigHandler.renderViewpointIcon) {
+            return;
+        }
         if (x * x + y * y + z * z > ICON_MAX_DISTANCE_SQ) {
             return;
         }
