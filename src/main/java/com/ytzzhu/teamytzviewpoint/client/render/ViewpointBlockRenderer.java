@@ -141,15 +141,25 @@ public class ViewpointBlockRenderer extends TileEntitySpecialRenderer<ViewpointT
 
         GlStateManager.pushMatrix();
         try {
-            // 图标不参与光照，按贴图原色显示；半透明像素要开混合
+            // 按"cutout"（剪纸）方式画，**不要**用混合 + 关深度写。
+            //
+            // 原因（已核实）：贴图的 alpha 只有 0 / 255 两种取值，根本不需要混合；
+            // 而 EntityRenderer.renderWorld 的绘制顺序是
+            //     SOLID → CUTOUT → renderEntities(我们在这里) → TRANSLUCENT(水/染色玻璃)
+            // 也就是说半透明层是在 TESR **之后**才画的。之前这里是
+            //     enableBlend + depthMask(false)
+            // 图标不写深度，后面画的水就畅通无阻地盖在它上面 ——
+            // 表现正是"背后有水时图标看起来半透明"。
+            //
+            // 改成 alpha 测试 + 写深度后：图标不透明的像素会写进深度缓冲，
+            // 之后的水在这一片会被深度测试挡掉，图标就实了。
             GlStateManager.disableLighting();
             GlStateManager.enableTexture2D();
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(
-                    GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-                    GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            GlStateManager.disableCull();      // 双面可见，正对镜头时不会因为绕序被剔掉
-            GlStateManager.depthMask(false);   // 半透明贴图不写深度
+            GlStateManager.disableBlend();       // 纯二值 alpha，不需要混合
+            GlStateManager.enableAlpha();
+            GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);   // 丢弃全透明像素
+            GlStateManager.disableCull();        // 双面可见，正对镜头时不会因绕序被剔掉
+            GlStateManager.depthMask(true);      // 写深度：挡住之后画的半透明层
 
             GlStateManager.translate(x + 0.5D, y + ICON_HEIGHT, z + 0.5D);
             GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
