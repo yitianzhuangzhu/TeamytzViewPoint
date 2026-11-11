@@ -99,10 +99,21 @@ jar {
             "Implementation-Version": "${version}",
             "Implementation-Vendor" :"ytzzhu",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
-            "MixinConfigs": "mixins.teamytzviewpoint.json",
-            "ForceLoadAsMod": "true",
-            "TweakOrder": "0"
+            // 这里**刻意不写** TweakClass / TweakOrder / ForceLoadAsMod。
+            //
+            // 之前是照着老模板写了：
+            //     "TweakClass": "org.spongepowered.asm.launch.MixinTweaker"
+            // 这等于向 LaunchWrapper 声明"本 jar 是一个 Mixin tweaker"，
+            // 启动时必须能加载到 org.spongepowered.asm.launch.MixinTweaker。
+            // 但：Forge 1.12.2 自身不含 Mixin（mapped/srg/universal 里 org/spongepowered 条目为 0），
+            // 我们的 jar 也没有把它们打进产物 —— 于是如果没有 MixinBooter/MixinBootstrap
+            // 这种"把 Mixin 库注入启动类加载器"的 mod，就会 ClassNotFoundException，启动即崩。
+            //
+            // 只保留 MixinConfigs 就够了：装了 MixinBooter 时它会扫描各 mod jar 的
+            // manifest 属性并把这里的配置加进 Mixin 环境；没装时本 mod 按普通 mod 正常加载
+            // （那个 mixin 只是 freecam 时代的遗留，见 MixinAbstractClientPlayer 的注释），
+            // 不会崩。这样 MixinBooter 就从"硬性前置"变成"可选"。
+            "MixinConfigs": "mixins.teamytzviewpoint.json"
         ])
     }
 }
